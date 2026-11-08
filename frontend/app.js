@@ -340,6 +340,16 @@ function isMovieInWatchlist(movieId) {
 // ==========================================
 // 6. MOVIE DETAIL MODAL
 // ==========================================
+let movieDetailCloseTimeout = null;
+
+function showMovieDetailModal() {
+  clearTimeout(movieDetailCloseTimeout);
+  movieDetailCloseTimeout = null;
+  const modal = document.getElementById('movie-detail-modal');
+  modal.classList.remove('hidden');
+  setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
 async function openMovieDetail(movieId) {
   let movie = state.allMovies.find(m => String(m.id) === String(movieId));
 
@@ -407,7 +417,7 @@ async function openMovieDetail(movieId) {
             <span>${isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
           </button>
 
-          <button onclick="closeMovieDetailModal(); openWatchedModal(${movie.id})" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-brand-surfaceHover hover:bg-amber-400 hover:text-black border border-brand-border text-white flex items-center justify-center gap-2 transition">
+          <button onclick="openWatchedModal(${movie.id})" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-brand-surfaceHover hover:bg-amber-400 hover:text-black border border-brand-border text-white flex items-center justify-center gap-2 transition">
             <i data-lucide="star" class="w-4 h-4"></i>
             <span>Log Review</span>
           </button>
@@ -416,16 +426,15 @@ async function openMovieDetail(movieId) {
     </div>
   `;
 
-  const modal = document.getElementById('movie-detail-modal');
-  modal.classList.remove('hidden');
-  setTimeout(() => modal.classList.remove('opacity-0'), 10);
+  showMovieDetailModal();
   lucide.createIcons();
 }
 
 function closeMovieDetailModal() {
   const modal = document.getElementById('movie-detail-modal');
   modal.classList.add('opacity-0');
-  setTimeout(() => modal.classList.add('hidden'), 200);
+  clearTimeout(movieDetailCloseTimeout);
+  movieDetailCloseTimeout = setTimeout(() => modal.classList.add('hidden'), 200);
 }
 
 // ==========================================
@@ -604,9 +613,7 @@ function openWatchedModal(movieId) {
   `;
 
   setRatingValue(5);
-  const modal = document.getElementById('movie-detail-modal');
-  modal.classList.remove('hidden');
-  setTimeout(() => modal.classList.remove('opacity-0'), 10);
+  showMovieDetailModal();
   lucide.createIcons();
 }
 

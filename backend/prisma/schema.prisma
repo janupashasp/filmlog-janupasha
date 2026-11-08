@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Movie {
+  id         Int    @id
+  title      String
+  year       Int
+  director   String
+  genres     Json
+  rating     Float
+  duration   String
+  synopsis   String
+  poster_url String
+  cast       Json
+  watchlists Watchlist[]
+  reviews    Review[]
+
+  @@map("movies")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String
+  email String @unique
+  passwordHash String @map("password_hash")
+  watchlists Watchlist[]
+  reviews Review[]
+  @@map("users")
+}
+
+model Watchlist {
+  userId Int @map("user_id")
+  movieId Int @map("movie_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id])
+  movie Movie @relation(fields: [movieId], references: [id])
+  @@id([userId, movieId])
+  @@map("watchlists")
+}
+
+model Review {
+  userId Int @map("user_id")
+  movieId Int @map("movie_id")
+  rating Int
+  review String
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user User @relation(fields: [userId], references: [id])
+  movie Movie @relation(fields: [movieId], references: [id])
+  @@id([userId, movieId])
+  @@map("reviews")
+}

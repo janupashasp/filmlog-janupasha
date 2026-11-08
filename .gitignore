@@ -3,3 +3,8 @@ Thumbs.db
 *.log
 .env
 .env.local
+/.pnpm-store/
+/backend/.agents/skills/
+/backend/.claude/skills/
+/backend/.windsurf/skills/
+/backend/skills-lock.json
