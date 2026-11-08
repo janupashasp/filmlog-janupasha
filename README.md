@@ -1,85 +1,151 @@
-# FilmLog — GDGoC Backend Recruitment Task Starter Pack
+# FilmLog
 
-Selamat datang di repositori penugasan backend **FilmLog (Movie Watchlist & Review Platform)**. Repositori ini menyediakan:
-1. **Initial Seed Database** (`data/movies.json` dan `data/seed.sql`) berisi 20 film kurasi awal dengan atribut lengkap.
-2. **Frontend Companion** (`frontend/`) bertema Letterboxd yang siap pakai untuk menguji endpoint backend Anda secara visual dan interaktif.
+FilmLog adalah REST API untuk menyimpan film ke watchlist, mencatat film yang sudah ditonton, dan memberi rating serta ulasan. Fitur rekomendasi memakai Google Gemini untuk memilih satu film dari katalog awal FilmLog.
 
----
+Proyek ini dibuat oleh **Janu Pasha Shandy Putra** untuk penugasan GDGoC Backend Recruitment. Backend menggunakan Node.js, TypeScript, Express, Prisma, dan SQLite. Frontend bawaan menggunakan HTML, JavaScript, dan Tailwind CSS.
 
-## 🎯 Objektif Penugasan
-Rancang dan bangun layanan **RESTful API** untuk aplikasi pelacak film (*movie watchlist*) yang mendukung alur autentikasi, kurasi film, pencatatan tontonan dan ulasan, serta integrasi **Google Gemini LLM** untuk rekomendasi film berbasis data lokal.
+## Demo
 
-Bebas menggunakan bahasa pemrograman dan framework apa pun (Node.js/Express/NestJS, Go/Gin/Fiber, Python/FastAPI/Django, PHP/Laravel, Java/Spring Boot, dll.) serta database relasional (PostgreSQL, MySQL, SQLite) atau NoSQL.
+- **Base URL API** — `https://filmlog-janupasha.onrender.com/api`
+- [Health check](https://filmlog-janupasha.onrender.com/api/health)
+- [Contoh detail film](https://filmlog-janupasha.onrender.com/api/movies/1)
 
----
+Demo berjalan di Render Free dengan SQLite sementara. Render bisa tidur saat tidak digunakan, sehingga permintaan pertama bisa lebih lambat. Akun, watchlist, dan review demo dapat ter-reset saat instance berhenti atau saat deploy ulang. Skrip startup mengisi kembali katalog awal dari [data/movies.json](data/movies.json).
 
-## 📁 Struktur Repositori Starter
+## Menjalankan secara lokal
 
-```text
-movie-watchlist-starter/
-├── data/
-│   ├── movies.json     # Data 20 film awal (format JSON) untuk database seeder
-│   └── seed.sql        # Skrip SQL INSERT kompatibel dengan PostgreSQL & MySQL
-├── frontend/
-│   ├── index.html      # Frontend Letterboxd-style SPA (Zero-build Tailwind)
-│   ├── app.js          # Client logic & API caller
-│   └── README.md       # Panduan menjalankan frontend
-└── README.md           # Panduan penugasan & spesifikasi API
+Siapkan Node.js 22.23.2, npm, dan Python 3 untuk menyajikan frontend.
+
+### Backend
+
+```bash
+git clone https://github.com/janupashasp/filmlog-janupasha.git
+cd filmlog-janupasha/backend
+npm ci --include=dev
+openssl rand -hex 32
 ```
 
----
+Buat file `backend/.env`. Isi `JWT_SECRET` dengan hasil perintah `openssl` tadi. Isi kedua variabel Gemini jika ingin mencoba rekomendasi film. `GEMINI_MODEL` menerima ID model tanpa awalan `models/`.
 
-## 📑 Spesifikasi Kontrak API (API Contract)
+```dotenv
+DATABASE_URL=file:./dev.db
+JWT_SECRET=ganti_dengan_hasil_openssl
+# GEMINI_API_KEY=isi_dengan_api_key
+# GEMINI_MODEL=isi_dengan_id_model
+```
 
-Agar sistem dapat terhubung secara lancar dengan frontend companion yang disediakan, pastikan API Anda mematuhi spesifikasi antarmuka (API Contract) berikut:
+Dari folder `backend/`, jalankan:
 
-### 1. Autentikasi
-* `POST /api/auth/register`
-  * **Body:** `{ "username": "string", "email": "string", "password": "string" }`
-  * **Response:** Status `201 Created`
-* `POST /api/auth/login`
-  * **Body:** `{ "email": "string", "password": "string" }`
-  * **Response:** Status `200 OK`, JSON berisi `{ "token": "JWT_STRING", "user": { ... } }`
+```bash
+npx prisma generate --config prisma7.config.ts
+touch dev.db
+npx prisma migrate deploy --config prisma7.config.ts
+npm run seed
+npm run dev
+```
 
-### 2. Movies
-* `GET /api/movies`
-  * **Query Params (Opsional):** `?genre=Sci-Fi&search=Inception`
-  * **Response:** Status `200 OK`, array daftar film dari database.
-* `GET /api/movies/:id`
-  * **Response:** Status `200 OK`, detail lengkap satu film.
+API berjalan di [http://localhost:8000/api/health](http://localhost:8000/api/health). `npm run typecheck` bisa dipakai untuk memeriksa tipe TypeScript.
 
-### 3. Watchlist (Protected - Membutuhkan `Authorization: Bearer <token>`)
-* `GET /api/watchlist`
-  * **Response:** Status `200 OK`, daftar film di watchlist user yang sedang login.
-* `POST /api/watchlist`
-  * **Body:** `{ "movieId": 1 }`
-  * **Response:** Status `201 Created`
-* `DELETE /api/watchlist/:movieId`
-  * **Response:** Status `200 OK` (atau `204 No Content`)
+### Frontend
 
-### 4. Watched & Review (Protected - Membutuhkan `Authorization: Bearer <token>`)
-* `GET /api/watched`
-  * **Response:** Status `200 OK`, riwayat film yang sudah ditonton oleh user beserta ulasan dan ratingnya.
-* `POST /api/watched`
-  * **Body:** `{ "movieId": 1, "rating": 5, "review": "Filmnya luar biasa..." }`
-  * **Response:** Status `201 Created`.
+Di terminal kedua, masuk ke **root repositori** `filmlog-janupasha/` lalu jalankan:
 
-### 5. AI Recommendation (Gemini API Integration ⭐)
-* `POST /api/movies/recommend`
-  * **Body:** `{ "prompt": "Saya mau film misteri dengan alur lambat dan atmosfer mendalam" }`
-  * **Aturan Khusus:** Film yang direkomendasikan **harus berasal dari 20 film di database awal**.
-  * **Response:** Status `200 OK` dengan JSON terstruktur:
-    ```json
-    {
-      "movie_id": 14,
-      "reasoning": "Memento sangat cocok dengan preferensi misteri Anda karena..."
+```bash
+python3 -m http.server 3000 --bind 127.0.0.1 --directory frontend
+```
+
+Buka [http://localhost:3000/](http://localhost:3000/). Di menu **Settings**, isi **API Base URL** dengan `http://localhost:8000/api` untuk backend lokal atau `https://filmlog-janupasha.onrender.com/api` untuk demo. Klik **Save & Reconnect**.
+
+## Dokumentasi REST API
+
+Untuk request dengan body JSON, kirim `Content-Type: application/json`. Endpoint bertanda **JWT** membutuhkan header `Authorization: Bearer <token>`. Token diperoleh dari endpoint login.
+
+| Method dan endpoint | Akses | Input | Respons sukses |
+| --- | --- | --- | --- |
+| `GET /api/health` | Publik | — | `200` dengan pesan status backend |
+| `POST /api/auth/register` | Publik | `username`, `email`, `password` | `201` dengan objek `user` |
+| `POST /api/auth/login` | Publik | `email`, `password` | `200` dengan `token` dan `user` |
+| `GET /api/movies` | Publik | Query opsional `search`, `genre`, `shuffle=true` | `200` dengan daftar film |
+| `GET /api/movies/:id` | Publik | ID film pada URL | `200` dengan detail film |
+| `POST /api/movies/recommend` | Publik | `prompt` | `200` dengan `movie_id` dan `reasoning` |
+| `GET /api/watchlist` | JWT | — | `200` dengan daftar watchlist akun, termasuk detail film |
+| `POST /api/watchlist` | JWT | `movieId` | `201` dengan entri watchlist baru |
+| `DELETE /api/watchlist/:movieId` | JWT | ID film pada URL | `204` tanpa body |
+| `GET /api/watched` | JWT | — | `200` dengan daftar review akun, termasuk detail film |
+| `POST /api/watched` | JWT | `movieId`, `rating` (bilangan bulat 1–5), `review` | `201` dengan review yang dibuat atau diperbarui |
+
+### Contoh request
+
+```bash
+API=https://filmlog-janupasha.onrender.com/api
+
+curl -i "$API/movies/1"
+
+curl -i "$API/movies/recommend" \
+  -H 'Content-Type: application/json' \
+  --data '{"prompt":"Rekomendasikan satu film misteri dengan alur non-linear."}'
+```
+
+Untuk contoh watchlist, daftar akun uji melalui frontend atau endpoint registrasi, lalu ambil nilai `token` dari respons login. Ganti `TOKEN_DARI_LOGIN` sebelum menjalankan request ini.
+
+```bash
+curl -i "$API/watchlist" \
+  -H 'Authorization: Bearer TOKEN_DARI_LOGIN' \
+  -H 'Content-Type: application/json' \
+  --data '{"movieId":1}'
+```
+
+Respons error menggunakan format `{"message":"..."}`.
+
+| Status | Contoh |
+| --- | --- |
+| `400 Bad Request` | JSON rusak, ID film tidak valid, atau rating di luar rentang |
+| `401 Unauthorized` | Login gagal, token hilang, atau token tidak valid |
+| `403 Forbidden` | Request watchlist menyertakan `userId` milik akun lain |
+| `404 Not Found` | Film tidak ditemukan atau entri watchlist milik akun tidak ada |
+| `409 Conflict` | Email atau entri watchlist duplikat, atau pelanggaran foreign key |
+| `413 Content Too Large` | Body melebihi batas 32 KB |
+| `502 Bad Gateway` | Panggilan Gemini gagal atau respons Gemini tidak valid |
+| `503 Service Unavailable` | Konfigurasi Gemini belum tersedia atau katalog kandidat kosong |
+
+## Arsitektur Database
+
+```mermaid
+erDiagram
+    users ||--o{ watchlists : menyimpan
+    movies ||--o{ watchlists : tercantum
+    users ||--o{ reviews : menulis
+    movies ||--o{ reviews : diulas
+
+    users {
+        int id PK
+        string username
+        string email UK
+        string password_hash
     }
-    ```
+    movies {
+        int id PK
+        string title
+        int year
+    }
+    watchlists {
+        int user_id PK, FK
+        int movie_id PK, FK
+        datetime created_at
+    }
+    reviews {
+        int user_id PK, FK
+        int movie_id PK, FK
+        int rating
+        string review
+        datetime updated_at
+    }
+```
 
----
+Satu akun dan satu film masing-masing dapat terhubung ke banyak entri watchlist atau review. Setiap entri menunjuk ke tepat satu akun dan satu film. Pasangan `(user_id, movie_id)` menjadi primary key gabungan di masing-masing tabel, sehingga satu akun hanya punya satu entri watchlist dan satu review per film. Diagram menampilkan kolom utama. Skema lengkap ada di [schema.prisma](backend/prisma/schema.prisma).
 
-## 💡 Prinsip Backend yang Dinilai
-1. **Database Modeling:** Relasi yang rapi antar tabel (`users`, `movies`, `watchlists`, `reviews`).
-2. **Access Control & Security:** Password di-hash (bcrypt/argon2), rute privat terlindungi token JWT, user tidak dapat memodifikasi data user lain.
-3. **Data Integrity & Robustness:** Validasi input request, penanganan error yang baik, dan penggunaan status code HTTP yang semantik.
-4. **Structured LLM Prompting:** Kemampuan mengarahkan Gemini untuk memilih dari subset data lokal dan mengembalikan JSON terstruktur.
+## Keamanan dan Rekomendasi
+
+- [auth.ts](backend/src/auth.ts) menyimpan hash password dengan bcrypt dan memverifikasi JWT. [activity.ts](backend/src/activity.ts) memakai ID akun dari token untuk membatasi akses ke watchlist dan review.
+- [http.ts](backend/src/http.ts) memakai Zod untuk memvalidasi input. [server.ts](backend/src/server.ts) memusatkan respons error dan memetakan konflik Prisma ke status `409`.
+- [recommend.ts](backend/src/recommend.ts) mengambil kandidat dari database berdasarkan ID pada katalog awal. Backend mengirim ID, judul, genre, dan sinopsis sebagai konteks ke Gemini. Instruksi sistem meminta satu pilihan dari kandidat dan alasan singkat dalam bahasa Indonesia. Setelah menerima hasil, backend memvalidasi struktur JSON dan mencocokkan `movie_id` dengan daftar kandidat sebelum mengembalikan respons.
