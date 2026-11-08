@@ -118,31 +118,41 @@ erDiagram
     movies ||--o{ reviews : diulas
 
     users {
-        int id PK
-        string username
-        string email UK
-        string password_hash
+        int id PK "AUTOINCREMENT"
+        text username "NOT NULL"
+        text email UK "NOT NULL"
+        text password_hash "NOT NULL"
     }
+
     movies {
         int id PK
-        string title
-        int year
+        text title "NOT NULL"
+        int year "NOT NULL"
+        text director "NOT NULL"
+        json genres "NOT NULL"
+        float rating "NOT NULL"
+        text duration "NOT NULL"
+        text synopsis "NOT NULL"
+        text poster_url "NOT NULL"
+        json cast "NOT NULL"
     }
+
     watchlists {
-        int user_id PK, FK
-        int movie_id PK, FK
-        datetime created_at
+        int user_id PK, FK "NOT NULL"
+        int movie_id PK, FK "NOT NULL"
+        datetime created_at "NOT NULL"
     }
+
     reviews {
-        int user_id PK, FK
-        int movie_id PK, FK
-        int rating
-        string review
-        datetime updated_at
+        int user_id PK, FK "NOT NULL"
+        int movie_id PK, FK "NOT NULL"
+        int rating "NOT NULL"
+        text review "NOT NULL"
+        datetime updated_at "NOT NULL"
     }
 ```
 
-Satu akun dan satu film masing-masing dapat terhubung ke banyak entri watchlist atau review. Setiap entri menunjuk ke tepat satu akun dan satu film. Pasangan `(user_id, movie_id)` menjadi primary key gabungan di masing-masing tabel, sehingga satu akun hanya punya satu entri watchlist dan satu review per film. Diagram menampilkan kolom utama. Skema lengkap ada di [schema.prisma](backend/prisma/schema.prisma).
+Satu akun dan satu film masing-masing dapat terhubung ke banyak entri watchlist atau review. Setiap entri menunjuk ke tepat satu akun dan satu film. Pasangan `(user_id, movie_id)` menjadi primary key gabungan di masing-masing tabel, sehingga satu akun hanya punya satu entri watchlist dan satu review per film. Skema lengkap ada di [schema.prisma](backend/prisma/schema.prisma).
 
 ## Keamanan dan Rekomendasi
 
