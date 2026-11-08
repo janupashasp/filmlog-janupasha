@@ -22,11 +22,9 @@ Siapkan Node.js 22.23.2, npm, dan Python 3 untuk menyajikan frontend.
 git clone https://github.com/janupashasp/filmlog-janupasha.git
 cd filmlog-janupasha/backend
 npm ci --include=dev
-openssl rand -hex 32
 ```
 
-Buat file `backend/.env`. Isi `JWT_SECRET` dengan hasil perintah `openssl` tadi. Isi kedua variabel Gemini jika ingin mencoba rekomendasi film. `GEMINI_MODEL` menerima ID model tanpa awalan `models/`.
-
+Buat file `backend/.env`. 
 ```dotenv
 DATABASE_URL=file:./dev.db
 JWT_SECRET=ganti_dengan_hasil_openssl
@@ -54,7 +52,7 @@ Di terminal kedua, masuk ke **root repositori** `filmlog-janupasha/` lalu jalank
 python3 -m http.server 3000 --bind 127.0.0.1 --directory frontend
 ```
 
-Buka [http://localhost:3000/](http://localhost:3000/). Di menu **Settings**, isi **API Base URL** dengan `http://localhost:8000/api` untuk backend lokal atau `https://filmlog-janupasha.onrender.com/api` untuk demo. Klik **Save & Reconnect**.
+Buka [http://localhost:3000/](http://localhost:3000/). Di menu **API** isi **API Base URL** dengan `http://localhost:8000/api` untuk backend lokal atau `https://filmlog-janupasha.onrender.com/api` untuk demo. Klik **Save & Reconnect**.
 
 ## Dokumentasi REST API
 
@@ -118,27 +116,37 @@ erDiagram
     movies ||--o{ reviews : diulas
 
     users {
-        int id PK
-        string username
-        string email UK
-        string password_hash
+        int id PK "AUTOINCREMENT"
+        text username "NOT NULL"
+        text email UK "NOT NULL"
+        text password_hash "NOT NULL"
     }
+
     movies {
         int id PK
-        string title
-        int year
+        text title "NOT NULL"
+        int year "NOT NULL"
+        text director "NOT NULL"
+        json genres "NOT NULL"
+        float rating "NOT NULL"
+        text duration "NOT NULL"
+        text synopsis "NOT NULL"
+        text poster_url "NOT NULL"
+        json cast "NOT NULL"
     }
+
     watchlists {
-        int user_id PK, FK
-        int movie_id PK, FK
-        datetime created_at
+        int user_id PK, FK "NOT NULL"
+        int movie_id PK, FK "NOT NULL"
+        datetime created_at "NOT NULL"
     }
+
     reviews {
-        int user_id PK, FK
-        int movie_id PK, FK
-        int rating
-        string review
-        datetime updated_at
+        int user_id PK, FK "NOT NULL"
+        int movie_id PK, FK "NOT NULL"
+        int rating "NOT NULL"
+        text review "NOT NULL"
+        datetime updated_at "NOT NULL"
     }
 ```
 
